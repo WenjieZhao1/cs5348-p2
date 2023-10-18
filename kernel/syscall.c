@@ -102,6 +102,12 @@ static int (*syscalls[])(void) = {
 [SYS_unlink]  sys_unlink,
 [SYS_wait]    sys_wait,
 [SYS_write]   sys_write,
+/*The following code is added by Wenjie Zhao(wxz220013) and Khoi Nguyen(kxn220022)
+**Add system call numbers for settickets and getpinfo
+*/
+[SYS_settickets] sys_settickets,
+[SYS_getpinfo] sys_getpinfo,
+/* End of code added */
 [SYS_uptime]  sys_uptime,
 };
 

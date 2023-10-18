@@ -88,3 +88,20 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+/*The following code is added by Wenjie Zhao(wxz220013)
+**Syscall to init the number of tickets for the process
+*/
+int
+sys_settickets(void)
+{
+  int ticket;
+  
+  if(argint(0, &ticket) < 0)
+    return -1;
+  return settickets(ticket);
+}
+int
+/* End of code added */
+
+//Need to achieve the function of getpinfo here by khoi

@@ -109,6 +109,12 @@ void            userinit(void);
 int             wait(void);
 void            wakeup(void*);
 void            yield(void);
+/*The following code is added by Wenjie Zhao(wxz220013) and Khoi Nguyen(kxn220022)
+**Add the function prototypes for settickets and getpinfo
+*/
+int             settickets(int);
+int             getpinfo(struct pstat *);
+/* End of code added */
 
 // swtch.S
 void            swtch(struct context**, struct context*);

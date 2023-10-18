@@ -19,6 +19,20 @@ extern void trapret(void);
 
 static void wakeup1(void *chan);
 
+/*The following code is added by Wenjie Zhao(wxz220013)
+**Set the number of tickets for the process
+*/
+int settickets(int num)
+{
+  if (num < 1)
+    return -1;
+  proc->tickets = num;
+  return 0;
+}
+/* End of code added */
+
+// need to achieve getpinfo here by khoi
+
 void
 pinit(void)
 {
@@ -67,6 +81,12 @@ found:
   p->context = (struct context*)sp;
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
+
+/*The following code is added by Wenjie Zhao(wxz220013)
+**Set the number of tickets for the process
+*/
+  p->tickets = 1;  
+/* End of code added */
 
   return p;
 }
@@ -147,6 +167,12 @@ fork(void)
 
   // Clear %eax so that fork returns 0 in the child.
   np->tf->eax = 0;
+
+  /*The following code is added by Wenjie Zhao(wxz220013)
+  **copy tickets of parent process to new process
+  */
+  np->tickets = proc->tickets;
+  /* End of code modified */
 
   for(i = 0; i < NOFILE; i++)
     if(proc->ofile[i])
@@ -252,34 +278,56 @@ wait(void)
 //  - swtch to start running that process
 //  - eventually that process transfers control
 //      via swtch back to the scheduler.
+
+/*The following code is modified by Wenjie Zhao(wxz220013)
+**Implementing Scheduler
+*/
 void
 scheduler(void)
 {
   struct proc *p;
-
+  int counter=0;
+  int totaltickets;
+  int chosen_ticket=0;
   for(;;){
     // Enable interrupts on this processor.
     sti();
-
+    // init the lottery number
+    totaltickets = 0;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
     for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
-
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
-      swtch(&cpu->scheduler, proc->context);
-      switchkvm();
-
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      proc = 0;
+      if(p->state == RUNNABLE || p->state == RUNNING){
+        totaltickets += p->tickets;
+      }
     }
+    if(totaltickets == 0){
+      release(&ptable.lock);
+      continue;
+    }
+    chosen_ticket = random_at_most(totaltickets);
+    counter = 0;
+    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+      if(p->state == RUNNABLE || p->state == RUNNING){
+        counter += p->tickets;
+        if(counter > chosen_ticket)
+          break;
+      }
+    }
+/* End of code modified */
+    // Switch to chosen process.  It is the process's job
+    // to release ptable.lock and then reacquire it
+    // before jumping back to us.
+    proc = p;
+    switchuvm(p);
+    p->state = RUNNING;
+    swtch(&cpu->scheduler, proc->context);
+    switchkvm();
+
+    // Process is done running for now.
+    // It should have changed its p->state before coming back.
+    proc = 0;
+    
     release(&ptable.lock);
 
   }

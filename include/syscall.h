@@ -23,5 +23,10 @@
 #define SYS_sbrk   19
 #define SYS_sleep  20
 #define SYS_uptime 21
-
+/*The following code is added by Wenjie Zhao(wxz220013) and Khoi Nguyen(kxn220022)
+**Define system call number of settickets and getpinfo
+*/
+#define SYS_settickets 22
+#define SYS_getpinfo 23
+/* End of code added */
 #endif // _SYSCALL_H_

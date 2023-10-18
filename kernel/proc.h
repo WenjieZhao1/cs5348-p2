@@ -59,7 +59,7 @@ struct context {
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
-// Per-process state
+
 struct proc {
   uint sz;                     // Size of process memory (bytes)
   pde_t* pgdir;                // Page table
@@ -74,7 +74,14 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  /*The following code is modified by Wenjie Zhao(wxz220013)
+  **Add tickets and ticks to count the number of tickets and the number of calls
+  **Per-process state
+  */
+  int tickets;                 // number of tickets for lottery
+  int ticks;                   // number of times process has been called
 };
+  /* End of code added */
 
 // Process memory is laid out contiguously, low addresses first:
 //   text

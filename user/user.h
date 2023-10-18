@@ -25,6 +25,12 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+/*The following code is added by Wenjie Zhao(wxz220013)
+**Add system call settickets and getpinfo
+*/
+int settickets(int);
+int getpinfo(struct pstat *);
+/* End of code added */
 
 // user library functions (ulib.c)
 int stat(char*, struct stat*);

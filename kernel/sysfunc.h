@@ -23,5 +23,10 @@ int sys_unlink(void);
 int sys_wait(void);
 int sys_write(void);
 int sys_uptime(void);
-
+/*The following code is added by Wenjie Zhao(wxz220013) and Khoi Nguyen(kxn220022)
+**Claim the function prototypes for settickets and getpinfo
+*/
+int sys_settickets(void);
+int sys_getpinfo(void);
+/* End of code added */
 #endif // _SYSFUNC_H_
