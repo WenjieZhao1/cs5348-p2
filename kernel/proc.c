@@ -5,6 +5,11 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+/*The following code is added by Khoi Nguyen(kxn220022)
+**Get the information of the process
+*/
+#include "pstat.h"
+/* End of code added */
 
 struct {
   struct spinlock lock;
@@ -31,7 +36,56 @@ int settickets(int num)
 }
 /* End of code added */
 
-// need to achieve getpinfo here by khoi
+/*The following code is added by Khoi Nguyen(kxn220022)
+**Get the information of the process
+*/
+int getpinfo(struct pstat * ps)
+{
+  if(ps == NULL)
+    return -1;
+  int i = 0;
+  struct proc *p; 
+  for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
+    if (p->state == UNUSED) {
+        ps->inuse[i] = 0;
+    } else {
+        ps->ticks[i] = p->ticks;
+        ps->inuse[i] = 1;
+        ps->tickets[i] = p->tickets;
+        ps->pid[i] = p->pid;
+      }
+    i++;
+    }
+return 0;
+}
+/* End of code added */
+
+/*The following code is added by Khoi Nguyen(kxn220022)
+**Generate the random number by shifting register and using XOR
+*/
+static int rnd_seed;
+
+void 
+set_rnd_seed (int new_seed)
+{
+    rnd_seed = new_seed;
+}
+
+int 
+rand_int (void)
+{
+    int k1;
+    int ix = rnd_seed;
+
+    k1 = ix / 127773;
+    ix = 16807 * (ix - k1 * 127773) - k1 * 2836;
+    if (ix < 0)
+        ix += 2147483647;
+    rnd_seed = ix;
+    return rnd_seed;
+}
+
+/* End of code added */
 
 void
 pinit(void)
@@ -88,6 +142,11 @@ found:
   p->tickets = 1;  
 /* End of code added */
 
+/*The following code is added by Khoi Nguyen(kxn220022)
+**System call for get process information
+*/
+  p->ticks = 0;
+/* End of code added */
   return p;
 }
 
@@ -285,42 +344,53 @@ wait(void)
 void
 scheduler(void)
 {
-  struct proc *p;
+  struct proc *current_process;
+  set_rnd_seed(1);
+  int random;
   int counter=0;
-  int totaltickets;
+  int total_tickets;
   int chosen_ticket=0;
   for(;;){
     // Enable interrupts on this processor.
     sti();
     // init the lottery number
-    totaltickets = 0;
+    total_tickets = 0;
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state == RUNNABLE || p->state == RUNNING){
-        totaltickets += p->tickets;
-      }
+    for (current_process = ptable.proc; current_process < &ptable.proc[NPROC]; current_process++) {
+        if (current_process->state == RUNNABLE || current_process->state == RUNNING) {
+            total_tickets += current_process->tickets;
+        }
     }
-    if(totaltickets == 0){
+    if(total_tickets == 0){
       release(&ptable.lock);
       continue;
     }
-    chosen_ticket = random_at_most(totaltickets);
+    random = rand_int();
+    chosen_ticket = random % total_tickets;
     counter = 0;
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state == RUNNABLE || p->state == RUNNING){
-        counter += p->tickets;
-        if(counter > chosen_ticket)
-          break;
-      }
+    for (current_process = ptable.proc; current_process < &ptable.proc[NPROC]; current_process++) {
+        if (current_process->state == RUNNING || current_process->state == RUNNABLE) {
+            counter += current_process->tickets;
+            if (counter > chosen_ticket) {
+                break;
+            }
+        }
     }
 /* End of code modified */
+
+/*The following code is modified by Khoi Nguyen(kxn220022)
+**Add the ticks after the process is chosen
+*/
+    current_process->ticks = current_process->ticks + 1;
+/* End of code modified */
+
     // Switch to chosen process.  It is the process's job
     // to release ptable.lock and then reacquire it
     // before jumping back to us.
-    proc = p;
-    switchuvm(p);
-    p->state = RUNNING;
+    proc = current_process;
+    switchuvm(current_process);
+    current_process->state = RUNNING;
     swtch(&cpu->scheduler, proc->context);
     switchkvm();
 

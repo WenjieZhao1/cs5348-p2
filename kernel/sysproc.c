@@ -95,13 +95,22 @@ sys_uptime(void)
 int
 sys_settickets(void)
 {
-  int ticket;
-  
-  if(argint(0, &ticket) < 0)
+  int tickets;
+  if(argint(0, &tickets) < 0)
     return -1;
-  return settickets(ticket);
+  return settickets(tickets);
 }
-int
 /* End of code added */
 
-//Need to achieve the function of getpinfo here by khoi
+/*The following code is added by Khoi Nguyen(kxn220022)
+**System call for get process information
+*/
+int
+sys_getpinfo(void)
+{
+  struct pstat* proc_info;
+  if(argptr(0, (void *)&proc_info, sizeof(proc_info)) < 0)
+	  return -1; 
+  return getpinfo(proc_info);
+}
+/* End of code added */

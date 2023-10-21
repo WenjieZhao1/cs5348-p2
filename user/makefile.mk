@@ -16,7 +16,19 @@ USER_PROGS := \
 	tester\
 	usertests\
 	wc\
-	zombie
+	zombie\
+	default_tickets\
+	forktickets\
+	getpinfo\
+	high_sleep\
+	high_tickets\
+	processesinuse\
+	random\
+	setticket\
+	stress_equal\
+	stress_manylow\
+	switch_tickets\
+	graph
 
 USER_PROGS := $(addprefix user/, $(USER_PROGS))
 
